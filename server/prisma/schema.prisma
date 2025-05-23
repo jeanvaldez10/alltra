@@ -1,0 +1,301 @@
+// This is your Prisma schema file with additions for trading integration
+// Based on your existing schema.prisma file
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  full_name    String
+  username     String   @unique
+  email        String   @unique
+  password     String
+  roles        Int[]
+  subscription Int
+  createdAt    DateTime @default(now())
+}
+
+model Category {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  channels  String[] // Array of channel IDs (references Channel)
+  createdAt DateTime @default(now())
+}
+
+model Channel {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  parent      String   @db.ObjectId // References Category ID
+  pinned      String[] // Embedded Messages
+  permissions Int[] // Array of permission numbers
+  createdAt   DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  by        String
+  channel   String
+  createdAt DateTime @default(now())
+}
+
+model Contact {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  phone     String
+  message   String
+  email     String
+  createdAt DateTime @default(now())
+  reason    Int
+}
+
+model Direct {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  members   String[] @db.ObjectId // Array of two User IDs
+  pinned    String[] // Embedded Messages (assumed to be message IDs)
+  createdAt DateTime @default(now())
+}
+
+
+enum NotificationType {
+  message
+  like
+  follow
+  system
+  mention
+  comment
+  friend_request
+  reaction
+}
+
+enum NotificationPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+model Notification {
+  id         String            @id @default(auto()) @map("_id") @db.ObjectId // MongoDB ObjectID as string
+  userId     String            // User this notification is sent to
+  type       NotificationType  // Type of notification (enum)
+  content    String            // Notification content
+  isRead     Boolean           @default(false) // Read status
+  createdAt  DateTime          @default(now()) // Auto-timestamp
+  priority   NotificationPriority? // Optional priority level
+  sourceId   String?           // Optional reference (e.g., message ID)
+  actionUrl  String?           // Optional deep link
+  expiresAt  DateTime?         // Optional expiration date
+  metadata   Json?             // Optional additional data (supports flexible JSON)
+
+  @@index([userId]) // Index for userId to improve query performance
+}
+// ======= New models for trading integration =======
+
+model Broker {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  description     String
+  logo            String?
+  apiEndpoint     String?
+  //importTemplates Json[] // Array of import template objects
+  importTemplates ImportTemplate[]
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  userBrokers     UserBroker[]
+  accounts        UserAccount[]
+  trades          Trade[]
+  tradeImports    TradeImport[]
+  tradeSyncs      TradeSync[]
+
+
+}
+
+model ImportTemplate {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  description     String
+  requiredColumns String[] // Use String[] instead of JSON
+  dateFormat      String
+  columnMappings  Json     // Keep complex mappings as JSON
+  brokerId        String   @db.ObjectId
+  broker          Broker   @relation(fields: [brokerId], references: [id])
+}
+model UserBroker {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String
+  brokerId     String   @db.ObjectId
+  broker       Broker   @relation(fields: [brokerId], references: [id])
+  accessToken  String
+  refreshToken String?
+  expiresAt    DateTime
+  lastSyncedAt DateTime
+  isActive     Boolean  @default(true)
+  autoSync     Boolean  @default(false)
+  syncInterval Int?     // How often to sync in minutes
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, brokerId])
+  @@index([userId])
+  @@index([brokerId])
+}
+
+model UserAccount {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String
+  brokerId          String   @db.ObjectId
+  broker            Broker   @relation(fields: [brokerId], references: [id])
+  name              String
+  accountNumber     String?
+  externalAccountId String   // ID used by the broker's API
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  trades            Trade[]
+
+  @@unique([userId, externalAccountId, brokerId])
+  @@index([userId])
+  @@index([brokerId])
+}
+
+model Trade {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String
+  brokerId     String        @db.ObjectId
+  broker       Broker        @relation(fields: [brokerId], references: [id])
+  accountId    String        @db.ObjectId
+  account      UserAccount   @relation(fields: [accountId], references: [id])
+  symbol       String
+  quantity     Float
+  entryPrice   Float
+  exitPrice    Float?
+  date         DateTime
+  exitDate     DateTime?
+  tradeType    String        // "buy" or "sell"
+  profit       Float
+  risk         Float?
+  commission   Float?
+  fees         Float?
+  externalId   String?       // ID from broker system
+  isOpen       Boolean       @default(false)
+  notes        TradeNote[]
+  tags         TradeTag[]
+  entries      TradeEntry[]
+  exits        TradeExit[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([brokerId])
+  @@index([accountId])
+  @@index([symbol])
+  @@index([date])
+  @@index([externalId])
+}
+
+model TradeNote {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tradeId   String   @db.ObjectId
+  trade     Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tradeId])
+}
+
+model Tag {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  name      String
+  trades    TradeTag[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model TradeTag {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  tradeId String @db.ObjectId
+  trade   Trade  @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  tagId   String @db.ObjectId
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([tradeId, tagId])
+  @@index([tradeId])
+  @@index([tagId])
+}
+
+model TradeEntry {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tradeId   String   @db.ObjectId
+  trade     Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  price     Float
+  quantity  Float
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tradeId])
+}
+
+model TradeExit {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tradeId   String   @db.ObjectId
+  trade     Trade    @relation(fields: [tradeId], references: [id], onDelete: Cascade)
+  price     Float
+  quantity  Float
+  date      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tradeId])
+}
+
+model TradeImport {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  brokerId    String   @db.ObjectId
+  broker      Broker   @relation(fields: [brokerId], references: [id])
+  accountId   String
+  importMethod String   // "csv", "excel", etc.
+  importedAt  DateTime
+  tradesCount Int
+  templateId  String
+  filename    String
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([brokerId])
+  @@index([importedAt])
+}
+
+model TradeSync {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String
+  brokerId    String   @db.ObjectId
+  broker      Broker   @relation(fields: [brokerId], references: [id])
+  accountId   String
+  syncedAt    DateTime
+  tradesCount Int
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([brokerId])
+  @@index([syncedAt])
+}

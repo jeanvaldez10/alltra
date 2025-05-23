@@ -1,0 +1,13 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true
+    },
+    "hide-files.files": [],
+    "github.copilot.chat.agent.thinkingTool": true,
+    "github.copilot.chat.codesearch.enabled": true,
+    "chat.unifiedChatView": false
+}

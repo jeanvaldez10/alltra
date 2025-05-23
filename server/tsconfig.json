@@ -1,0 +1,27 @@
+{
+	"compilerOptions": {
+		"target": "ES2021",
+		"module": "CommonJS",
+		"strict": false,
+		"skipLibCheck": true,
+		"noEmitOnError": false,
+		"outDir": "./dist",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"moduleResolution": "node",
+		"allowJs": true,
+		"declaration": false
+	},
+	"include": [
+		"src/**/*",
+		"api/**/*",
+		"commands/**/*",
+		"lib/**/*",
+		"@types/**/*",
+		"prisma/**/*",
+		"services/websocket.ts",
+		"middlewares/verify.ts", "services/auto-sync-service.ts",
+	],
+	"exclude": ["node_modules", "**/*.test.ts", "**/__tests__/**/*"]
+}

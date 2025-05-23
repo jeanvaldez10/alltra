@@ -1,0 +1,86 @@
+const default_navitems = [
+    {
+        name: "My assistant",
+        new: true,
+        icon: Star,
+        is_notification: false,
+
+    },
+    {
+        name: "My mail",
+        new: false,
+        icon: File,
+        is_notification: false,
+
+    },
+    {
+        name: "Saved content",
+        new: false,
+        icon: Bookmark,
+        is_notification: false,
+
+    },
+    {
+        name: "Direct messages",
+        new: false,
+        icon: Mail,
+        is_notification: true,
+        count: 9
+    },
+    {
+        name: "My teams",
+        new: false,
+        icon: Users,
+        is_notification: true,
+        count: 5
+
+    }
+]
+
+const favorites_items = [
+    {
+        name: "Trade Recaps",
+        icon: ChartBar,
+    },
+    {
+        name: "Trading Chat",
+        icon: MessageCircleIcon,
+    },
+    {
+        name: "Announcements",
+        icon: Newspaper,
+    }
+]
+
+<div className='flex flex-col gap-3'>
+                    {default_navitems.map((item, i) => {
+                        return (
+                            <div key={i} className='flex items-center gap-2'>
+
+                                <item.icon />
+                                <div className={`rounded-full py-1 px-2 hover:bg-zinc-900 border border-transparent hover:border-zinc-800 duration-100 select-none cursor-pointer  ${item.new ? "bg-gradient-to-r from-blue-700 to-indigo-800 text-white" : "bg-neutral-900/50 border border-neutral-500/10 "} w-full flex items-center`}>
+                                    <p className={`w-full   text-zinc-300  text-sm  `}>{item.name}</p>
+                                    {item.new && <span className='bg-blue-700 px-1 rounded text-xs'>NEW</span>}
+                                    {item.is_notification && <span className='text-xs bg-red-600 rounded-full w-4 text-center items-center flex justify-center'>{item.count}</span>}
+                                </div>
+
+                            </div>
+                        )
+                    })}
+                </div>
+                <div className='flex flex-col mt-4 gap-3'>
+                    <h1 className=''>Favorites</h1>
+                    {favorites_items.map((item, i) => {
+                        return (
+                            <div key={i} className='flex items-center gap-2'>
+
+                                <item.icon />
+                                <div className={`rounded-full py-1 px-2 hover:bg-neutral-900 border  hover:border-neutral-800 duration-100 select-none cursor-pointer  bg-neutral-900/50  border-neutral-500/10 w-full flex items-center`}>
+                                    <p className={`w-full   text-zinc-300  text-sm  `}>{item.name}</p>
+
+                                </div>
+
+                            </div>
+                        )
+                    })}
+                </div>
