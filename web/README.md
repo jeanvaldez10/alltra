@@ -1,46 +1,46 @@
-## Colors:
-- background: black
-- primary: neutral-950
-- primary-2: blue-800
-- secondary: neutral-800
-- borders: neutral-800
-- rounded: rounded-lg
-- text: normal & bold
-- padding: p-4 (for cards or items) for sidebar and container (px-4 py-6)
+# Alltra Web
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+The Alltra web application provides the public website, trader dashboard, community chat, learning experiences, account settings, and trading interfaces.
 
-## Getting Started
+It is built with Next.js 15, React 19, TypeScript, Tailwind CSS, Prisma, Redux Toolkit, WebSockets, and charting libraries.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Create `.env.local` in this directory:
+
+```dotenv
+NEXT_PUBLIC_DATABASE_URL="mongodb://127.0.0.1:27017/alltra"
+NEXT_PUBLIC_API_IP="localhost:3001"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Install dependencies and generate the Prisma client:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+npm install
+npx prisma generate
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Start the development server:
 
-## Learn More
+```powershell
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+The configured script runs Next.js on port `80`. If that port is unavailable or restricted, run:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```powershell
+npx next dev --port 3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Update `NEXT_PUBLIC_API_IP` to point to the Express server host and port.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the development server on port 80 |
+| `npm run build` | Create a production build |
+| `npm start` | Serve the production build on port 80 |
+| `npm run lint` | Run lint checks |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For complete repository setup, API configuration, and deployment notes, see the [root README](../README.md).
